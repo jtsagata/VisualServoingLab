@@ -164,8 +164,8 @@ for t=0:dt:tf
     Lx = [];
 
     for i=1:4
-        Lx_temp = [ -1/Z, 0,    s_A(1,i)/Z, s_A(1,i)*s_A(2,i),        -( 1 + s_A(1,i)^2), s_A(2,i);
-                    0,        -1/Z, s_A(2,i)/Z, 1 + s_A(2,i)^2,      -s_A(1,i)*s_A(2,i), -s_A(1,i)];
+        Lx_temp = [ -1/Z,  0,    s_A(1,i)/Z,  s_A(1,i)*s_A(2,i),   -( 1 + s_A(1,i)^2),   s_A(2,i);
+                    0,   -1/Z,   s_A(2,i)/Z,  1 + s_A(2,i)^2,      -s_A(1,i)*s_A(2,i),  -s_A(1,i)   ];
 
         Lx = [Lx; Lx_temp];
     end
@@ -193,10 +193,18 @@ for t=0:dt:tf
     theta = norm(w);
     if( theta == 0 ) u = [0;0;1]; else u = w/norm(w); end
 
+    % x = uthetat2dq( u, θ, t ) computes the dual quaternion x from given rotation unit axis u, 
+    % rotation angle θ, and translation vector t.
     update_dq_AR = uthetat2dq( u, dt*theta, dt*v );
+    
+    % x = muldualpq( p, q ) multiplies two given dual quaternions, e.g., p and q, and gives the result dual
+    % quaternion, e.g., x.
     dq_AR = muldualpq( update_dq_AR, dq_AR );
 
+    % (u, θ, R, t ) = dualq2uthetaRt( x ) computes the rotation unit axis u, rotation angle θ, rotation
+    % matrix R, and translation vector t from given dual quaternion x.
     [ u_AR, theta_AR, R_AR, t_AR ] = dualq2uthetaRt( dq_AR );
+    
     X_AR = [R_AR, t_AR; 0 0 0 1];
     
     traces = [ traces, t_AR ]; % the trajectory of the camera frame

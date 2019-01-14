@@ -44,7 +44,8 @@ time_intervals = [];
 
 while( time < tf )
     %% Error
-    error_dq_AB = muldualpq( conjdualqsimple( dq_BR ),  dq_AR ); % e = inv( pose_desired )*pose;
+    % e = inv( pose_desired )*pose;
+    error_dq_AB = muldualpq( conjdualqsimple( dq_BR ),  dq_AR ); 
     [ u_AB, theta_AB, R_AB, t_AB ] = dualq2uthetaRt( error_dq_AB );
     
     err = [err; error_dq_AB'];

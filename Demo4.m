@@ -2,6 +2,7 @@ clear; clc;
 clear all;
 close all;
 
+% coplanar problem
 iPrexix="Demo4";
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

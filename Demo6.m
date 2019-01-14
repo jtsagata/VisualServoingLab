@@ -2,6 +2,7 @@ clear; clc;
 clear all;
 close all;
 
+ % divergence
 iPrexix="Demo6";
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -69,17 +70,17 @@ X_BR = [ R_BR, t_BR; 0 0 0 1];
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Pattern location at C wrt to the fixed reference frame at R
-u_CR = [ 1; 0; 0];        % normal condition and coplanar problem
+%u_CR = [ 1; 0; 0];        % normal condition and coplanar problem
 %u_CR = [ 1; 0; 0];        % local minima problem
-%u_CR = [ 1; 0; 0];        % divergence problem
+u_CR = [ 1; 0; 0];        % divergence problem
 
-theta_CR = 90*deg2rad;    % normal condition and coplanar problem
+%theta_CR = 90*deg2rad;    % normal condition and coplanar problem
 %theta_CR = 90*deg2rad;    % local minima problem
-%theta_CR = 90*deg2rad;    % divergence problem
+theta_CR = 90*deg2rad;    % divergence problem
 
-t_CR = [ 0.2; 0.9; 0.7 ]; % normal condition and coplanar problem
+%t_CR = [ 0.2; 0.9; 0.7 ]; % normal condition and coplanar problem
 %t_CR = [ 0.2; 0.9; 0.9 ]; % local minima problem
-%t_CR = [ 0.2; 0.9; 0.7 ]; % divergence problem
+t_CR = [ 0.2; 0.9; 0.7 ]; % divergence problem
 
 dq_CR = uthetat2dq( u_CR, theta_CR, t_CR ); % Dual quaternion pose 
 [ u_CR, theta_CR, R_CR, t_CR ] = dualq2uthetaRt( dq_CR );
@@ -138,7 +139,7 @@ for t=0:dt:tf
     %% Take an image from location A ?
 
     % Scene points in the camera frame
-LX    P_A = inv(X_AR)*[ P1, P2, P3, P4; 1 1 1 1 ];
+    P_A = inv(X_AR)*[ P1, P2, P3, P4; 1 1 1 1 ];
     P1A = P_A(1:3,1);
     P2A = P_A(1:3,2);
     P3A = P_A(1:3,3);

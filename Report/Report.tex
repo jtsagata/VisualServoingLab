@@ -1,0 +1,461 @@
+% rubber: set program xelatex
+\documentclass[a4paper,12pt]{article}
+
+\usepackage{xltxtra}
+\usepackage{amsmath,amsthm,amssymb}
+\usepackage{mathtools}
+
+\usepackage[autostyle=true]{csquotes}
+\usepackage{polyglossia}
+\setmainlanguage{english}
+
+% Fonts
+\setmainfont{CMU Serif}
+\setsansfont{CMU Sans Serif}
+\setmonofont{CMU Typewriter Text}
+\usepackage[xetex, colorlinks=true, citecolor=blue, linkcolor=blue]{hyperref}
+
+\usepackage{fancyhdr} 
+\pagestyle{fancy}
+
+\usepackage{graphicx}
+\usepackage{placeins}
+%\usepackage{subfigure} 
+\usepackage{subcaption}
+\usepackage{float} 
+\usepackage{siunitx}
+
+
+% Source code listings
+\usepackage{listings}
+\usepackage{color}
+\usepackage{matlab-prettifier}
+\lstdefinestyle{My-Matlab}
+{
+  style               = MatlabBaseStyle@mlpr,
+  basicstyle          = \color{black}\ttfamily\small, 
+  mllastelementstyle  = \color{black}                    ,
+  mlkeywordstyle      = \color[RGB]{000,000,255}         ,
+  mlcommentstyle      = \color[RGB]{034,139,034}         ,
+  mlstringstyle       = \color[RGB]{160,032,240}         ,
+  mlsyscomstyle       = \color[RGB]{178,140,000}         ,
+  mlsectiontitlestyle = \commentStyle@mlpr      \bfseries,
+  mlsharedvarstyle    = \color[RGB]{000,163,163}         ,
+  mlplaceholderstyle  = \mleditorphstyle,
+}
+
+
+% Commands
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+
+\begin{document}
+
+\begin{minipage}{0.50\textwidth} 
+	\begin{flushleft}
+	\includegraphics[scale = 0.50]{Logo-vibot.png}
+	\end{flushleft}
+\end{minipage}
+\begin{minipage}{0.50\textwidth} 
+	\begin{flushright}
+		\includegraphics[scale = 0.50]{Logo-ub.png}
+	\end{flushright}
+\end{minipage}
+
+\begin{center} 
+	\vspace*{-1cm}
+	\textsc{\Large University of Burgundy}\\[0.5cm]
+
+	\textsc{\Large Masters in Computer Vision}
+\end{center}
+\vspace*{-0.5cm}
+\HRule
+\vspace*{4cm}
+
+
+\begin{minipage}{0.9\textwidth} 
+	\begin{center}																					%%%
+		\textsc{\LARGE Visual Servoing} \\[0.5cm]
+		\textsc{\LARGE \textbf{IBVS \& PBVS \\[0.2cm] Free Camera 3D \\[0.2cm] Pose Control}} \\
+		
+	\end{center}
+\end{minipage}\\[1.5cm]
+
+\begin{center}
+{ \Large 
+	by \\[0.25cm]
+	\textbf{Tsagkatakis Ioannis} \\[1.5cm]
+	Under the supervision of \\[0.25cm]
+	\textbf{Dr. Erol Ozgur} \\
+}
+\end{center}
+
+\vspace*{2cm}
+
+\begin{center}
+	\today
+\end{center}
+% End First page
+\newpage
+
+\section{Introduction}
+We want to move a camera from its current Cartesian pose to a desired Cartesian pose (see Fig. \ref{fig:fig1}). We
+assume that we can measure the Cartesian pose of the camera at every instant of time using a sensor.
+
+\begin{figure}[H]
+         \centering
+         \includegraphics[width=12cm]{../images/pbvs-camera.jpg}
+         \caption{Camera pose control. Blue camera shows the initial pose of the camera, and the red camera shows the desired pose of the camera.}
+ 	\label{fig:fig1}
+\end{figure}
+
+
+\section{The Pose Controll problem}
+As the location of the camera is always known we have a Position Based Visual Servoing (PBVS) problem. The control system can be either a real system like a robot or a virtual system like in Viruar Reality applications.
+
+\begin{figure}[tb]
+         \centering
+         \includegraphics[width=13cm]{coordsys.png}
+         \caption{The coordinate frames : word, end-effector, camera and target.}
+ 	\label{fig:coord}
+\end{figure}
+
+%% TODO check
+The general structure of a PBVS is shown in Figure~\ref{fig:fig2}. A PBVS system operates in Cartesian space and
+allows the direct and natural specification of the desired relative trajectories in the Cartesian space.  The parameters extracted from the image $\mathbf{s} = \mathbf{s}(\mathbf{p}_t)$, are used with the models of camera
+and object geometry to estimate the relative pose vector $\widehat{\mathbf{W}}$ of the object with respect to the end-effector. The estimated pose is compared with the desired relative pose $\mathbf{W}_d$ to calculate the relative pose error $\widetilde{\mathbf{W}}$.  The coordinate frames involved in the process is given in Figure~\ref{fig:coord} on page~\pageref{fig:coord}.
+
+
+A Cartesian control law reduces the relative pose error, and the Cartesian control command transformed to 
+the joint-level commands for the joint-servo loops by appropriate kinematic transformations.
+By separating the pose-estimation problem from the control-design
+problem, the control designer can take advantage of well-established robot Cartesian control algorithms.
+ 
+
+\begin{figure}[tb]
+         \centering
+         \includegraphics[width=13cm]{../images/PBVS_loop.png}
+         \caption{Structure of Position based Visual Servoing (PBVS).}
+ 	\label{fig:fig2}
+\end{figure}
+
+
+
+
+\subsection{The Control law}
+The visual features parameters extracted from the image are a function of the camera poses as given by
+\begin{equation}
+	\mathbf{s} = \mathbf{s}(\mathbf{p}_t)
+	\label{eq:1}
+\end{equation}
+By taking the derivative of the above relation we obtain
+\begin{equation}
+	\dot{\mathbf{S}} = \mathbf{L}_s \mathbf{V} \,\text{,}
+	\label{eq:2}
+\end{equation}
+where $\mathbf{L}_s$ the so called \textit{Interaction matrix} or \textit{feature Jacobian} and $\mathbf{V}$  the 
+camera (Kinematic screw) denoted by $\mathbf{V} = \left( \vec{\upsilon}, \vec{\omega} \right)$. Thus thw $\mathbf{V}$ contains 3 translatiosn and 3 rotations. 
+
+The goal of the control law is to minimize the error given by
+\begin{equation}
+	\mathbf{e}(t) = \mathbf{S}\left(  \mathbf{p}_t \right) -\mathbf{S}^{\ast} \,\text{,}
+	\label{eq:3}
+\end{equation}
+where $\mathbf{S}^{\ast}$ the desired value of the feature.
+
+Using equations \eqref{eq:1} and \eqref{eq:3} then the time variation of the error is
+\begin{equation}
+	\dot{\mathbf{e}} =  \mathbf{L}_s   \mathbf{V}
+	\label{eq:4}
+\end{equation}
+A good control law is to have an exponential decoupled decrease of the error 
+$\dot{\mathbf{e}} = - \lambda\ \mathbf{e}$. This corresponds to
+\begin{equation}
+	\mathbf{V} = -\lambda \widehat{\mathbf{L}_s^+}\left(\mathbf{S}  -\mathbf{S}^{\ast} \right)
+	\label{eq:5}
+\end{equation}
+
+\subsubsection{Stability analysis}
+\begin{equation}
+	\begin{cases}
+		\widehat{\mathbf{L}_s}\widehat{\mathbf{L}_s^+} = \mathbf{I} 
+			& \text{Ideal behavior} \\
+		\widehat{\mathbf{L}_s}\widehat{\mathbf{L}_s^+} >0 & 
+			\text{The error}\, \mathbf{e}\, \text{decreases} \\
+		\widehat{\mathbf{L}_s}\widehat{\mathbf{L}_s^+} < 0 & 
+			\text{The error}\, \mathbf{e}\, \text{grows} \\
+	\end{cases}
+\end{equation}
+
+
+\section{Image Based Visual Servoing}
+
+\subsection{Matlab Experiments}
+\subsubsection{A Loop of IBVS visual servoing}
+In the first example we have 2 cameras, and the pattern is clearly visible from them.
+\begin{figure}[t!]
+		 \begin{subfigure}[b]{\textwidth}         
+         	\centering
+	         \includegraphics[width=12cm]{../results/Demo1-simulation.png}
+    	     \caption{The camera motion}
+    	     \vspace~
+		 \end{subfigure}
+         \begin{subfigure}[b]{0.32\textwidth}
+        	\centering
+	        \includegraphics[height=1.2in]{../results/Demo1-control-law.png}
+    	    \subcaption{Control Law}
+		 \end{subfigure}
+         \begin{subfigure}[b]{0.2\textwidth}
+        	\centering
+	        \includegraphics[height=1.2in]{../results/Demo1-eignen.png}
+    	    \subcaption{Eignevalues}
+		 \end{subfigure}%
+         \begin{subfigure}[b]{0.32\textwidth}
+        	\centering
+	        \includegraphics[height=1.2in]{../results/Demo1-error.png}
+    	    \subcaption{Errors}
+		 \end{subfigure}%
+         \caption{Simple case : Observable pattern, the control law.}
+ 	\label{fig:demo1}
+\end{figure}
+%\FloatBarrier
+From the simulation results on Figure~\ref{fig:demo1} on page~\pageref{fig:demo1}, we observe that the camera follows a very good and straight path. The velocity is getting smaller and smaller as we aproaching the target. 
+We notice that the interactiom matrix have some very high eigenvalues and some very small ones. So the DoF of the eigenvalues with big values is the only ones that drives the control of the system.
+
+\subsubsection{Loosing Features: 3 points}
+If we have only 3 points then we get 6 features witch is the minimum required. That not gurantes that we 
+get a good solution in every case. Here the final camera location is almost correct. The movement have some instabilities, but that is expected due to the poorless interaction matrix. The simulation results is given at Figure~\ref{fig:demo2} on page~\pageref{fig:demo2}.
+
+\begin{figure}[t!]
+		 \begin{subfigure}[b]{\textwidth}         
+         	\centering
+	         \includegraphics[width=13cm]{../results/Demo2-simulation.png}
+    	     \caption{The camera motion}
+    	     \vspace~
+		 \end{subfigure}
+         \begin{subfigure}[b]{0.32\textwidth}
+        	\centering
+	        \includegraphics[height=1.2in]{../results/Demo2-control-law.png}
+    	    \subcaption{Control Law}
+		 \end{subfigure}
+         \begin{subfigure}[b]{0.2\textwidth}
+        	\centering
+	        \includegraphics[height=1.2in]{../results/Demo2-eignen.png}
+    	    \subcaption{Eignevalues}
+		 \end{subfigure}%
+         \begin{subfigure}[b]{0.32\textwidth}
+        	\centering
+	        \includegraphics[height=1.2in]{../results/Demo2-error.png}
+    	    \subcaption{Errors}
+		 \end{subfigure}%
+         \caption{Using 3 features : Observable pattern, the control law.}
+ 	\label{fig:demo2}
+\end{figure}
+
+\subsubsection{Loosing Features: 2 points}
+By using only 2 point we get better results. That was not expected, but thatis because of the 
+initial view have 2 lines that is directed connected with the target lines it was easy to get a 
+very smooth solution.  The simulation results is given at Figure~\ref{fig:demo3} on page~\pageref{fig:demo3}.
+
+\begin{figure}[t!]
+		 \begin{subfigure}[b]{\textwidth}         
+         	\centering
+	         \includegraphics[width=13cm]{../results/Demo3-simulation.png}
+    	     \caption{The camera motion}
+    	     \vspace~
+		 \end{subfigure}
+         \begin{subfigure}[b]{0.32\textwidth}
+        	\centering
+	        \includegraphics[height=1.2in]{../results/Demo3-control-law.png}
+    	    \subcaption{Control Law}
+		 \end{subfigure}
+         \begin{subfigure}[b]{0.2\textwidth}
+        	\centering
+	        \includegraphics[height=1.2in]{../results/Demo3-eignen.png}
+    	    \subcaption{Eignevalues}
+		 \end{subfigure}%
+         \begin{subfigure}[b]{0.32\textwidth}
+        	\centering
+	        \includegraphics[height=1.2in]{../results/Demo3-error.png}
+    	    \subcaption{Errors}
+		 \end{subfigure}%
+         \caption{Using 2 features : Observable pattern, the control law.}
+ 	\label{fig:demo3}
+\end{figure}
+
+\subsubsection{The Coplanar Problem}
+Here the human solution is just a rotation. But the solution to minimize the distances is to move the camera 
+backwards as the error is decreasing. All the eignvalues are small in this case. The simulation results is given at Figure~\ref{fig:demo4} on page~\pageref{fig:demo4}.
+\begin{figure}[t!]
+		 \begin{subfigure}[b]{\textwidth}         
+         	\centering
+	         \includegraphics[width=13cm]{../results/Demo4-simulation.png}
+    	     \caption{The camera motion}
+    	     \vspace~
+		 \end{subfigure}
+         \begin{subfigure}[b]{0.32\textwidth}
+        	\centering
+	        \includegraphics[height=1.2in]{../results/Demo4-control-law.png}
+    	    \subcaption{Control Law}
+		 \end{subfigure}
+         \begin{subfigure}[b]{0.2\textwidth}
+        	\centering
+	        \includegraphics[height=1.2in]{../results/Demo4-eignen.png}
+    	    \subcaption{Eignevalues}
+		 \end{subfigure}%
+         \begin{subfigure}[b]{0.32\textwidth}
+        	\centering
+	        \includegraphics[height=1.2in]{../results/Demo4-error.png}
+    	    \subcaption{Errors}
+		 \end{subfigure}%
+         \caption{The coplanar problem.}
+ 	\label{fig:demo4} 
+\end{figure}
+
+\subsubsection{The Local Minimuma Problem}
+The simulation runs into  a local minima and it was unable to find a smooth path or a valid solution.
+The simulation results is given at Figure~\ref{fig:demo5} on page~\pageref{fig:demo5}. The motion is shown in Figure~\ref{fig:vdemo5} on page~\pageref{fig:vdemo5}.
+\begin{figure}[t!]
+		 \begin{subfigure}[b]{\textwidth}         
+         	\centering
+	         \includegraphics[width=13cm]{../results/Demo5-simulation.png}
+    	     \caption{The camera motion}
+    	     \vspace~
+		 \end{subfigure}
+         \begin{subfigure}[b]{0.32\textwidth}
+        	\centering
+	        \includegraphics[height=1.2in]{../results/Demo5-control-law.png}
+    	    \subcaption{Control Law}
+		 \end{subfigure}
+         \begin{subfigure}[b]{0.2\textwidth}
+        	\centering
+	        \includegraphics[height=1.2in]{../results/Demo5-eignen.png}
+    	    \subcaption{Eignevalues}
+		 \end{subfigure}%
+         \begin{subfigure}[b]{0.32\textwidth}
+        	\centering
+	        \includegraphics[height=1.2in]{../results/Demo5-error.png}
+    	    \subcaption{Errors}
+		 \end{subfigure}%
+         \caption{The local minima problem.} 
+ 	\label{fig:demo5} 
+\end{figure}
+
+\begin{figure}[tb]
+         \begin{subfigure}[b]{0.32\textwidth}
+        	\centering
+	        \includegraphics[height=1.2in]{../results/demo5-XY.png}
+    	    \subcaption{XY view}
+		 \end{subfigure}
+         \begin{subfigure}[b]{0.2\textwidth}
+        	\centering
+	        \includegraphics[height=1.2in]{../results/demo5-XZ.png}
+    	    \subcaption{XZ view}
+		 \end{subfigure}%
+         \begin{subfigure}[b]{0.32\textwidth}
+        	\centering
+	        \includegraphics[height=1.2in]{../results/demo5-YZ.png}
+    	    \subcaption{YZ View}
+		 \end{subfigure}%
+         \caption{The local minima problem: Motion Views} 
+ 	\label{fig:vdemo5} 
+\end{figure}
+%\FloatBarrier
+
+\subsubsection{The Diverge Problem}
+The simulation results is given at Figure~\ref{fig:demo6} on page~\pageref{fig:demo6}. The motion is shown in Figure~\ref{fig:vdemo6} on page~\pageref{fig:vdemo6}.
+\begin{figure}[t!]
+		 \begin{subfigure}[b]{\textwidth}         
+         	\centering
+	         \includegraphics[width=13cm]{../results/Demo6-simulation.png}
+    	     \caption{The camera motion}
+    	     \vspace~
+		 \end{subfigure}
+         \begin{subfigure}[b]{0.32\textwidth}
+        	\centering
+	        \includegraphics[height=1.2in]{../results/Demo6-control-law.png}
+    	    \subcaption{Control Law}
+		 \end{subfigure}
+         \begin{subfigure}[b]{0.2\textwidth}
+        	\centering
+	        \includegraphics[height=1.2in]{../results/Demo6-eignen.png}
+    	    \subcaption{Eignevalues}
+		 \end{subfigure}%
+         \begin{subfigure}[b]{0.32\textwidth}
+        	\centering
+	        \includegraphics[height=1.2in]{../results/Demo6-error.png}
+    	    \subcaption{Errors}
+		 \end{subfigure}% 
+         \caption{The diverge problem.} 
+ 	\label{fig:demo6} 
+\end{figure}
+
+\begin{figure}[tb]
+         \begin{subfigure}[b]{0.32\textwidth}
+        	\centering
+	        \includegraphics[height=1.2in]{../results/demo6-XY.png}
+    	    \subcaption{XY view}
+		 \end{subfigure}
+         \begin{subfigure}[b]{0.2\textwidth}
+        	\centering
+	        \includegraphics[height=1.2in]{../results/demo6-XZ.png}
+    	    \subcaption{XZ view}
+		 \end{subfigure}%
+         \begin{subfigure}[b]{0.32\textwidth}
+        	\centering
+	        \includegraphics[height=1.2in]{../results/demo6-YZ.png}
+    	    \subcaption{YZ View}
+		 \end{subfigure}%
+         \caption{The diverge problem: Motion Views} 
+ 	\label{fig:vdemo6} 
+\end{figure}
+\FloatBarrier
+
+\section{Position Based Visual Servoing}
+Here the camera pose at each time step is known. The movement of the camera is very smooth and it reach the desired location without problems. The simulation results is given at Figure~\ref{fig:pbvs} on page~\pageref{fig:pbvs}.
+\begin{figure}[tb]
+         \begin{subfigure}[b]{0.32\textwidth}
+        	\centering
+	        \includegraphics[height=1.2in]{../results/PBVS3.png}
+    	    \subcaption{Camera movement}
+		 \end{subfigure}
+         \begin{subfigure}[b]{0.2\textwidth}
+        	\centering
+	        \includegraphics[height=1.2in]{../results/PBVS2.png}
+    	    \subcaption{Errors over time}
+		 \end{subfigure}%
+         \begin{subfigure}[b]{0.32\textwidth}
+        	\centering
+	        \includegraphics[height=1.2in]{../results/PBVS1.png}
+    	    \subcaption{Camera control law}
+		 \end{subfigure}%
+         \caption{Position Based Visual Servoing} 
+ 	\label{fig:pbvs} 
+\end{figure}
+
+\section{Conclusions}
+
+\subsection{MatlabCode}
+The code of this project is on Github repository \url{https://github.com/jtsagata/VisualServoingLab}.
+
+
+\section{Bibliography}
+•Visual servoing is an effective technique to control robots:
+Vision provide a rich information about the environment
+Developed to deal with dynamic environment
+Can applied to several kind of robots and in several fields
+
+
+The code of this project is on Github repository \url{https://github.com/jtsagata/...}.
+
+references
+Visual Servoing : Theory and applications (Chapetr 15 from some book)
+
+F. Chaumette, S. Hutchinson. Visual Servo Control, Part I: Basic Approaches. IEEE Robotics and Automation Magazine, 13(4):82-90, December 2006.
+
+S. A. Hutchinson, G. D. Hager, and P. I. Corke. A tutorial on visual servo control. IEEE Trans. Robot. Automat., 12(5):651—670, Oct. 1996.
+
+F. Chaumette, S. Hutchinson. Visual Servo Control, Part II: Advanced Approaches. IEEE Robotics and Automation Magazine, 14(1):109-118, March 2007
+
+
+%\clearpage 
+\end{document} % NOTHING AFTER THIS LINE IS PART OF THE DOCUMENT

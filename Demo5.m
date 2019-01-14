@@ -2,7 +2,7 @@ clear; clc;
 clear all;
 close all;
 
-iPrexix="Demo1";
+iPrexix="Demo5";
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 deg2rad = pi/180;
@@ -20,24 +20,24 @@ K = [ fx,  0, uo;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Current Camera location at A wrt to the fixed reference frame at R
-u_AR = [ 1; 0; 0];                 % normal condition
+%u_AR = [ 1; 0; 0];                 % normal condition
 %u_AR = [ 1; 0; 0.3];               % losing 1 feature (3 points)
 %u_AR = [ 1; 0; 0];                 % losing 2 feature (2 points)
 %u_AR = [ 0.0000; 0.7071; 0.7071];  % coplanar problem
-%u_AR = [-0.8348; -0.3893; 0.3893]; % local minima problem
+u_AR = [-0.8348; -0.3893; 0.3893]; % local minima problem
 %u_AR = [-0.9351; -0.2506; 0.2506]; % divergence problem
 
-theta_AR = -110*deg2rad;   % normal condition
+%theta_AR = -110*deg2rad;   % normal condition
 %theta_AR = -125*deg2rad;   % losing 1 feature (3 points)
 %theta_AR = -130*deg2rad;   % losing 2 feature (2 points)
 %theta_AR = pi;             % coplanar problem
-%theta_AR = 1.7504;         % local minima problem
+theta_AR = 1.7504;         % local minima problem
 %theta_AR = 1.6378;         % divergence
 
-t_AR = [ 0.0; 0.0; 0.9 ];
+%t_AR = [ 0.0; 0.0; 0.9 ];
 %t_AR = [ 0.0; 0.0; 0.8 ];  % losing 1 feature (3 points)
 %t_AR = [ 0.3; 0.2; 0.8 ];  % coplanar problem
-%t_AR = [ 1.0; -.10; 1.0];  % local minima problem
+t_AR = [ 1.0; -.10; 1.0];  % local minima problem
 %t_AR = [ 1.0; -.10; 1.0];  % divergence
 
 dq_AR = uthetat2dq( u_AR, theta_AR, t_AR ); % Dual quaternion pose
@@ -47,19 +47,19 @@ X_AR = [ R_AR, t_AR; 0 0 0 1];
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Desired Camera location at B wrt to the fixed reference frame at R
-u_BR = [ 1; 0; 0];                 % normal condition
+%u_BR = [ 1; 0; 0];                 % normal condition
 %u_BR = [ 1; 0; 0];                 % coplanar problem
-%u_BR = [-0.8348; 0.3893; -0.3893]; % local minima problem
+u_BR = [-0.8348; 0.3893; -0.3893]; % local minima problem
 %u_BR = [-0.8348; 0.3893; -0.3893]; % divergence problem
 
-theta_BR = -90*deg2rad; % normal condition
+%theta_BR = -90*deg2rad; % normal condition
 %theta_BR = -pi/2;        % coplanar problem
-%theta_BR = 1.7504;      % local minima problem
+theta_BR = 1.7504;      % local minima problem
 %theta_BR = 1.7504;      % divergence problem
 
-t_BR = [ 0.3; 0.2; 0.8 ]; % normal condition
+%t_BR = [ 0.3; 0.2; 0.8 ]; % normal condition
 %t_BR = [ 0.3; 0.0; 0.8 ]; % coplanar problem
-%t_BR = [ -0.5; 0.1; 1.0]; % local minima problem
+t_BR = [ -0.5; 0.1; 1.0]; % local minima problem
 %t_BR = [ -0.5; 0.1; 1.0]; % divergence problem
 
 dq_BR = uthetat2dq( u_BR, theta_BR, t_BR ); % Dual quaternion pose
@@ -207,7 +207,7 @@ for t=0:dt:tf
     fig1= figure(1);
     set(gca,'LooseInset',get(gca,'TightInset'));
     
-    subplot(1,2,1); hold on; grid on;
+    subplot(2,2,[1 3]); hold on; grid on;
     plot3( traces(1,:), traces(2,:), traces(3,:), 'k' );
     plot_pattern( pattern_points_CR );
     plot_camera( X_BR, 'r' );
@@ -216,7 +216,7 @@ for t=0:dt:tf
     view( 50, 40 ); 
 
     %% Plot the image of the camera from locations A and B  
-    subplot(1,2,2); hold on; grid on; box on;
+    subplot(2,2,4); hold on; grid on; box on;
     plot(traces_point(:,1), traces_point(:,2), 'r');
     plot(traces_point(:,3), traces_point(:,4), 'g');
     plot(traces_point(:,5), traces_point(:,6), 'b');
@@ -226,6 +226,21 @@ for t=0:dt:tf
     axis ij; axis image; xlabel('i'); ylabel('j');
     axis([ 0 1024 0 1024 ]);
     title('Camera View');
+
+    %% Plot the Initial image of the camera from locations A and B
+    if t == dt
+       p1A_t0 = p1A;
+       p2A_t0 = p2A;
+       p3A_t0 = p3A;
+       p4A_t0 = p4A;
+    end
+    if t > dt
+        subplot(2,2,2); hold on; grid on; box on;
+        plot_image([p1A_t0, p2A_t0, p3A_t0, p4A_t0], 1);
+        axis ij; axis image; xlabel('i'); ylabel('j');
+        axis([ 0 1024 0 1024 ]);
+        title('Initial Camera View');       
+    end    
     
     drawnow;
 end

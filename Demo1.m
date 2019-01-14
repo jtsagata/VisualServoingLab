@@ -207,7 +207,7 @@ for t=0:dt:tf
     fig1= figure(1);
     set(gca,'LooseInset',get(gca,'TightInset'));
     
-    subplot(1,2,1); hold on; grid on;
+    subplot(2,2,[1 3]); hold on; grid on;
     plot3( traces(1,:), traces(2,:), traces(3,:), 'k' );
     plot_pattern( pattern_points_CR );
     plot_camera( X_BR, 'r' );
@@ -216,7 +216,7 @@ for t=0:dt:tf
     view( 50, 40 ); 
 
     %% Plot the image of the camera from locations A and B  
-    subplot(1,2,2); hold on; grid on; box on;
+    subplot(2,2,4); hold on; grid on; box on;
     plot(traces_point(:,1), traces_point(:,2), 'r');
     plot(traces_point(:,3), traces_point(:,4), 'g');
     plot(traces_point(:,5), traces_point(:,6), 'b');
@@ -226,6 +226,21 @@ for t=0:dt:tf
     axis ij; axis image; xlabel('i'); ylabel('j');
     axis([ 0 1024 0 1024 ]);
     title('Camera View');
+
+    %% Plot the Initial image of the camera from locations A and B
+    if t == dt
+       p1A_t0 = p1A;
+       p2A_t0 = p2A;
+       p3A_t0 = p3A;
+       p4A_t0 = p4A;
+    end
+    if t > dt
+        subplot(2,2,2); hold on; grid on; box on;
+        plot_image([p1A_t0, p2A_t0, p3A_t0, p4A_t0], 1);
+        axis ij; axis image; xlabel('i'); ylabel('j');
+        axis([ 0 1024 0 1024 ]);
+        title('Initial Camera View');       
+    end    
     
     drawnow;
 end
